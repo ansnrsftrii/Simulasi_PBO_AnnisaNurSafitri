@@ -1,0 +1,53 @@
+<?php
+// File: index.php
+require_once 'koneksi/database.php';
+require_once 'JalurPendaftaran.php';
+
+$database = new Database();
+$db = $database->getConnection();
+
+// Mengambil 3 data sampel teratas dari tabel pendaftaran
+$query = "SELECT * FROM tabel_pendaftaran LIMIT 3";
+$stmt = $db->prepare($query);
+$stmt->execute();
+
+echo "<h2>Daftar Hasil Overriding Objek Pendaftaran</h2>";
+echo "<table border='1' cellpadding='10' cellspacing='0'>";
+echo "<tr>
+        <th>Nama Calon</th>
+        <th>Asal Sekolah</th>
+        <th>Nilai</th>
+        <th>Info Spesifik Jalur (Overridden)</th>
+        <th>Total Biaya (Overridden)</th>
+      </tr>";
+
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $objekPendaftar = null;
+
+    // Polimorfisme: Instansiasi objek berdasarkan nilai kolom 'jalur_pendaftaran'
+    if ($row['jalur_pendaftaran'] == 'Reguler') {
+        $objekPendaftar = new Reguler($row);
+    } elseif ($row['jalur_pendaftaran'] == 'Prestasi') {
+        $objekPendaftar = new Prestasi($row);
+    } elseif ($row['jalur_pendaftaran'] == 'Kedinasan') {
+        $objekPendaftar = new Kedinasan($row);
+    }
+
+    if ($objekPendaftar != null) {
+        echo "<tr>";
+        // Menggunakan Getter terenkapsulasi dari kelas induk
+        echo "<td>" . $objekPendaftar->getNamaCalon() . "</td>";
+        echo "<td>" . $objekPendaftar->getAsalSekolah() . "</td>";
+        echo "<td>" . $objekPendaftar->getNilaiUjian() . "</td>";
+        
+        // Memanggil metode yang telah di-override
+        echo "<td>";
+        $objekPendaftar->tampilkanInfoJalur();
+        echo "</td>";
+        
+        echo "<td>Rp " . number_format($objekPendaftar->hitungTotalBiaya(), 2, ',', '.') . "</td>";
+        echo "</tr>";
+    }
+}
+echo "</table>";
+?>
