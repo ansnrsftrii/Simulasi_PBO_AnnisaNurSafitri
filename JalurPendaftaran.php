@@ -2,72 +2,93 @@
 // File: JalurPendaftaran.php
 require_once 'Pendaftaran.php';
 
-// 1. Kelas Anak untuk Jalur Reguler
-class Reguler extends Pendaftaran {
-    private $pilihan_prodi;
-    private $lokasi_kampus;
+// =========================================================================
+// 1. Kelas Anak: PendaftaranReguler
+// =========================================================================
+class PendaftaranReguler extends Pendaftaran {
+    private $pilihanProdi;
+    private $lokasiKampus;
 
     public function __construct($data = []) {
-        parent::__construct($data); // Memanggil constructor induk
-        $this->pilihan_prodi = $data['pilihan_prodi'] ?? '';
-        $this->lokasi_kampus = $data['lokasi_kampus'] ?? '';
+        parent::__construct($data);
+        $this->pilihanProdi = $data['pilihan_prodi'] ?? '';
+        $this->lokasiKampus = $data['lokasi_kampus'] ?? '';
     }
 
-    // OVERRIDING: Jalur Reguler biaya total = biaya dasar tetap
+    // TAHAP 5 OVERRIDING: Total Biaya = biayaPendaftaranDasar (Tarif standar murni)
     public function hitungTotalBiaya() {
         return $this->biayaPendaftaranDasar;
     }
 
-    // OVERRIDING: Menampilkan info khusus reguler
     public function tampilkanInfoJalur() {
-        echo "Jalur: Reguler | Prodi: {$this->pilihan_prodi} | Kampus: {$this->lokasi_kampus}";
+        echo "<b>Prodi:</b> {$this->pilihanProdi} <br> <b>Kampus:</b> {$this->lokasiKampus}";
+    }
+
+    public static function getDaftarReguler($db) {
+        $query = "SELECT * FROM tabel_pendaftaran WHERE jalur_pendaftaran = 'Reguler'";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 
-// 2. Kelas Anak untuk Jalur Prestasi
-class Prestasi extends Pendaftaran {
-    private $jenis_prestasi;
-    private $tingkat_prestasi;
+// =========================================================================
+// 2. Kelas Anak: PendaftaranPrestasi
+// =========================================================================
+class PendaftaranPrestasi extends Pendaftaran {
+    private $jenisPrestasit;
+    private $tingkatPrestasi;
 
     public function __construct($data = []) {
         parent::__construct($data);
-        $this->jenis_prestasi = $data['jenis_prestasi'] ?? '';
-        $this->tingkat_prestasi = $data['tingkat_prestasi'] ?? '';
+        $this->jenisPrestasi   = $data['jenis_prestasi'] ?? '';
+        $this->tingkatPrestasi = $data['tingkat_prestasi'] ?? '';
     }
 
-    // OVERRIDING: Jalur Prestasi dapat potongan biaya 50.000 jika tingkat Nasional/Internasional
+    // TAHAP 5 OVERRIDING: Total Biaya = biayaPendaftaranDasar - 50000 (Potongan insentif)
     public function hitungTotalBiaya() {
-        if ($this->tingkat_prestasi == 'Nasional' || $this->tingkat_prestasi == 'Internasional') {
-            return $this->biayaPendaftaranDasar - 50000;
-        }
-        return $this->biayaPendaftaranDasar;
+        return $this->biayaPendaftaranDasar - 50000;
     }
 
-    // OVERRIDING: Menampilkan info khusus prestasi
     public function tampilkanInfoJalur() {
-        echo "Jalur: Prestasi | Jenis: {$this->jenis_prestasi} | Tingkat: {$this->tingkat_prestasi}";
+        echo "<b>Prestasi:</b> {$this->jenisPrestasi} <br> <b>Tingkat:</b> {$this->tingkatPrestasi}";
+    }
+
+    public static function getDaftarPrestasi($db) {
+        $query = "SELECT * FROM tabel_pendaftaran WHERE jalur_pendaftaran = 'Prestasi'";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 
-// 3. Kelas Anak untuk Jalur Kedinasan
-class Kedinasan extends Pendaftaran {
-    private $sk_ikatan_dinas;
-    private $instansi_sponsor;
+// =========================================================================
+// 3. Kelas Anak: PendaftaranKedinasan
+// =========================================================================
+class PendaftaranKedinasan extends Pendaftaran {
+    private $skIkatanDinas;
+    private $instansiSponsor;
 
     public function __construct($data = []) {
         parent::__construct($data);
-        $this->sk_ikatan_dinas = $data['sk_ikatan_dinas'] ?? '';
-        $this->instansi_sponsor = $data['instansi_sponsor'] ?? '';
+        $this->skIkatanDinas   = $data['sk_ikatan_dinas'] ?? '';
+        $this->instansiSponsor = $data['instansi_sponsor'] ?? '';
     }
 
-    // OVERRIDING: Jalur Kedinasan ditanggung penuh sponsor (Biaya = 0)
+    // TAHAP 5 OVERRIDING: Total Biaya = biayaPendaftaranDasar * 1.25 (Surcharge 25%)
     public function hitungTotalBiaya() {
-        return 0.0;
+        return $this->biayaPendaftaranDasar * 1.25;
     }
 
-    // OVERRIDING: Menampilkan info khusus kedinasan
     public function tampilkanInfoJalur() {
-        echo "Jalur: Kedinasan | Sponsor: {$this->instansi_sponsor} | No SK: {$this->sk_ikatan_dinas}";
+        echo "<b>Sponsor:</b> {$this->instansiSponsor} <br> <b>No SK:</b> {$this->skIkatanDinas}";
+    }
+
+    public static function getDaftarKedinasan($db) {
+        $query = "SELECT * FROM tabel_pendaftaran WHERE jalur_pendaftaran = 'Kedinasan'";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>
